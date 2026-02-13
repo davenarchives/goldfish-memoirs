@@ -40,10 +40,10 @@ const Sidebar = ({ currentPage, onPageChange, darkMode, onToggleDarkMode }) => {
           ${isCollapsed ? '-translate-x-full lg:translate-x-0 lg:w-20' : 'w-72 lg:w-72'}
         `}
             >
-                <div className="flex flex-col h-full p-6">
+                <div className={`flex flex-col h-full ${isCollapsed ? 'p-3 items-center' : 'p-6'}`}>
                     {/* Logo/Header */}
                     <div className="mb-8">
-                        <div className="flex items-center justify-between">
+                        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                             {!isCollapsed && (
                                 <div className="animate-fade-in">
                                     <h1 className="text-2xl font-bold text-gradient-goldfish">
@@ -91,7 +91,7 @@ const Sidebar = ({ currentPage, onPageChange, darkMode, onToggleDarkMode }) => {
                                         if (window.innerWidth < 1024) setIsCollapsed(true);
                                     }}
                                     className={`
-                    w-full flex items-center gap-3 px-4 py-3 rounded-xl
+                    flex items-center ${isCollapsed ? 'w-11 h-11 justify-center' : 'w-full gap-3 px-4 py-3'} rounded-xl
                     transition-all duration-200 group
                     ${isActive
                                             ? 'bg-gradient-goldfish text-white shadow-goldfish'
@@ -115,7 +115,7 @@ const Sidebar = ({ currentPage, onPageChange, darkMode, onToggleDarkMode }) => {
                     <div className="mb-4">
                         <button
                             onClick={onToggleDarkMode}
-                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl glass-card hover:bg-white/90 dark:hover:bg-ocean-navy-700/90 transition-all"
+                            className={`flex items-center ${isCollapsed ? 'w-11 h-11 justify-center' : 'w-full gap-3 px-4 py-3'} rounded-xl glass-card hover:bg-white/90 dark:hover:bg-ocean-navy-700/90 transition-all`}
                         >
                             {darkMode ? (
                                 <Sun className="w-5 h-5 text-yellow-500" />
@@ -132,7 +132,7 @@ const Sidebar = ({ currentPage, onPageChange, darkMode, onToggleDarkMode }) => {
 
                     {/* User Profile */}
                     {user && (
-                        <div className="glass-card p-4 rounded-xl">
+                        <div className={`glass-card rounded-xl ${isCollapsed ? 'p-2' : 'p-4'}`}>
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-gradient-goldfish flex items-center justify-center text-white font-bold">
                                     {user.displayName?.[0] || user.email?.[0] || '?'}
