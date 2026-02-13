@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --goldfish-primary: #FF8C42;
+    --water-blue: #E0F2FE;
+    --ocean-navy: #0F172A;
+  }
+
+  body {
+    @apply bg-water-blue-100 dark:bg-ocean-navy-900 text-gray-900 dark:text-gray-100;
+    @apply transition-colors duration-300;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-goldfish-300 dark:bg-goldfish-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-goldfish-400 dark:bg-goldfish-500;
+  }
+}
+
+@layer components {
+  /* Glassmorphism Card */
+  .glass-card {
+    @apply bg-white/70 dark:bg-ocean-navy-800/70;
+    @apply backdrop-blur-xl backdrop-saturate-150;
+    @apply border border-white/20 dark:border-ocean-navy-700/50;
+    @apply rounded-2xl shadow-glass;
+    @apply transition-all duration-300;
+  }
+
+  .glass-card:hover {
+    @apply shadow-glass-lg;
+    @apply border-goldfish-200/30 dark:border-goldfish-800/30;
+  }
+
+  /* Button Styles */
+  .btn-primary {
+    @apply bg-gradient-goldfish text-white font-semibold;
+    @apply px-6 py-3 rounded-xl;
+    @apply shadow-goldfish hover:shadow-goldfish-lg;
+    @apply transition-all duration-300;
+    @apply hover:scale-105 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply glass-card text-gray-800 dark:text-gray-100 font-semibold;
+    @apply px-6 py-3 rounded-xl;
+    @apply hover:bg-white/90 dark:hover:bg-ocean-navy-700/90;
+  }
+
+  /* Input Styles */
+  .input-glass {
+    @apply glass-card px-4 py-3 w-full;
+    @apply focus:outline-none focus:ring-2 focus:ring-goldfish-500/50;
+    @apply placeholder:text-gray-400 dark:placeholder:text-gray-500;
+  }
+
+  /* Badge Styles */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    @apply transition-all duration-200;
+  }
+
+  .badge-canvas {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300;
+  }
+
+  .badge-google {
+    @apply bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300;
+  }
+
+  .badge-ustep {
+    @apply bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300;
+  }
+
+  .badge-manual {
+    @apply bg-goldfish-100 text-goldfish-800 dark:bg-goldfish-900/30 dark:text-goldfish-300;
+  }
+}
+
+@layer utilities {
+  /* Glassmorphism utilities */
+  .glass-bg {
+    @apply bg-white/60 dark:bg-ocean-navy-800/60 backdrop-blur-xl;
+  }
+
+  .glass-border {
+    @apply border border-white/20 dark:border-ocean-navy-700/50;
+  }
+
+  /* Text gradient */
+  .text-gradient-goldfish {
+    @apply bg-gradient-goldfish bg-clip-text text-transparent;
+  }
+
+  /* Smooth transitions */
+  .smooth-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Focus ring */
+  .focus-ring-goldfish {
+    @apply focus:outline-none focus:ring-2 focus:ring-goldfish-500 focus:ring-offset-2;
+    @apply dark:focus:ring-offset-ocean-navy-900;
+  }
+}
+
+/* Loading animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton {
+  @apply animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200;
+  @apply dark:from-ocean-navy-800 dark:via-ocean-navy-700 dark:to-ocean-navy-800;
+  @apply bg-[length:1000px_100%];
+  animation: shimmer 2s infinite;
+}
