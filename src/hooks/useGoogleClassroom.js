@@ -37,6 +37,7 @@ export const useGoogleClassroom = () => {
 
                 await window.gapi.client.init({
                     apiKey: import.meta.env.VITE_GOOGLE_API_KEY,
+                    clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
                     discoveryDocs: DISCOVERY_DOCS,
                 });
 
@@ -59,6 +60,9 @@ export const useGoogleClassroom = () => {
             window.gapi.client.setToken({
                 access_token: tokenResponse.access_token
             });
+
+            // Save this token too as a fallback/update
+            localStorage.setItem('google_access_token', tokenResponse.access_token);
 
             // Proceed with fetch after token is set
             const assignments = await fetchAssignments();
@@ -99,12 +103,13 @@ export const useGoogleClassroom = () => {
             return await deepFetchCourses(courses);
 
         } catch (err) {
-            console.error('❌ API Error:', err);
-            // If error is 401 (unauthorized), it usually means we need to login again
-            if (err.status === 401 || err.result?.error?.code === 401) {
-                console.log('🔄 Token expired or missing, prompting login...');
-                // We don't trigger login here recursively to avoid loops, just fail this attempt
-                // The main entry point handles the login trigger
+            console.error('❌ API Error Full Details:', JSON.stringify(err, null, 2));
+
+            // Handle 400/401 errors by clearing the bad token
+            if (err.status === 401 || err.status === 400 || err.result?.error?.code === 401 || err.result?.error?.code === 400) {
+                console.log('🔄 Token likely invalid (400/401). Clearing storage to force re-login next time.');
+                localStorage.removeItem('google_access_token');
+                // We don't automatically trigger login here to avoid loops, but next click will trigger it.
             } else {
                 setError(err.message);
             }
@@ -221,9 +226,28 @@ export const useGoogleClassroom = () => {
             return [];
         }
 
-        const token = window.gapi.client.getToken();
+        // Try to get token from gapi client first
+        let tokenObject = window.gapi.client.getToken();
+        let token = tokenObject?.access_token;
+
+        // NEW: Check local storage if gapi token is missing
         if (!token) {
-            console.log('🔑 No token found, prompting login...');
+            const storedToken = localStorage.getItem('google_access_token');
+            if (storedToken) {
+                console.log('🔄 Restoring Google token from storage...');
+                window.gapi.client.setToken({ access_token: storedToken });
+                token = storedToken;
+            }
+        }
+
+        console.log('🔍 Current GAPI Token:', token ? 'Present' : 'Missing', tokenObject);
+
+        if (!token) {
+            console.log('🔑 No GAPI token found, will prompt login...'); // Only logs, doesn't prompt yet
+        }
+
+        if (!token) {
+            console.log('🔑 No token found anywhere, prompting login...');
 
             // Return a promise that resolves when the login success callback runs!
             return new Promise((resolve) => {
@@ -232,6 +256,7 @@ export const useGoogleClassroom = () => {
             });
         }
 
+        console.log('🚀 Proceeding to fetch assignments with token...');
         return await fetchAssignments();
 
     }, [gapiReady, login]);
