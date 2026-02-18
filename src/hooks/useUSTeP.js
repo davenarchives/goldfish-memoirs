@@ -10,7 +10,7 @@ export const useUSTeP = () => {
         setLoading(true);
         setError(null);
         try {
-            const proxyUrl = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
+            const proxyUrl = import.meta.env.VITE_PROXY_URL || '';
 
             const response = await fetch(`${proxyUrl}/api/ustep/login`, {
                 method: 'POST',
@@ -53,7 +53,7 @@ export const useUSTeP = () => {
 
         setLoading(true);
         try {
-            const proxyUrl = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
+            const proxyUrl = import.meta.env.VITE_PROXY_URL || '';
             const response = await fetch(`${proxyUrl}/api/ustep/assignments`, {
                 headers: {
                     'Authorization': `Bearer ${currentToken}`

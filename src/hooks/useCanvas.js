@@ -25,7 +25,7 @@ export const useCanvas = () => {
         setError(null);
 
         try {
-            const proxyUrl = import.meta.env.VITE_PROXY_URL ?? '';
+            const proxyUrl = import.meta.env.VITE_PROXY_URL || '';
 
             // Pass token in headers to proxy
             const response = await fetch(`${proxyUrl}/api/canvas/assignments`, {

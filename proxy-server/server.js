@@ -33,11 +33,8 @@ app.get('/health', (req, res) => {
 const CANVAS_BASE_URL = process.env.CANVAS_BASE_URL;
 const CANVAS_API_TOKEN = process.env.CANVAS_API_TOKEN;
 
-// Validate environment variables
 if (!CANVAS_BASE_URL) {
-    console.error('ERROR: Missing CANVAS_BASE_URL environment variable!');
-    console.error('Please set CANVAS_BASE_URL in .env file');
-    process.exit(1);
+    console.warn('⚠️ CANVAS_BASE_URL not set. Canvas integration will return errors until configured.');
 }
 if (!CANVAS_API_TOKEN) {
     console.warn('⚠️ CANVAS_API_TOKEN not set. Users must provide their own token (BYOT mode).');
@@ -51,6 +48,10 @@ async function canvasApiRequest(endpoint, token, method = 'GET', data = null) {
 
         if (!apiKey) {
             throw new Error('No Canvas API token provided');
+        }
+
+        if (!CANVAS_BASE_URL) {
+            throw new Error('CANVAS_BASE_URL is not configured on the server');
         }
 
         const config = {
