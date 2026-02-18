@@ -35,8 +35,8 @@ function App() {
     saveToken: saveCanvasToken,
     loading: canvasLoading,
     error: canvasError
-  } = useCanvas();
-  const { fetchGoogleClassroomAssignments, gapiReady } = useGoogleClassroom();
+  } = useCanvas(user?.uid);
+  const { fetchGoogleClassroomAssignments, gapiReady } = useGoogleClassroom(user?.uid);
   const {
     login: loginUSTeP,
     fetchUSTePAssignments,
@@ -45,7 +45,7 @@ function App() {
     setIsLoginModalOpen,
     loading: ustepLoading,
     error: ustepError
-  } = useUSTeP();
+  } = useUSTeP(user?.uid);
 
   // Check for saved dark mode preference
   useEffect(() => {

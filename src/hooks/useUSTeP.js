@@ -1,10 +1,36 @@
 import { useState, useCallback, useEffect } from 'react';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../services/firebaseConfig';
 
-export const useUSTeP = () => {
+export const useUSTeP = (userId) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('ustep_token'));
+    const [token, setToken] = useState(null);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [initialLoad, setInitialLoad] = useState(true);
+
+    // Load token from Firestore on mount
+    useEffect(() => {
+        if (!userId) {
+            setInitialLoad(false);
+            return;
+        }
+
+        const loadToken = async () => {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', userId));
+                if (userDoc.exists() && userDoc.data().ustepToken) {
+                    setToken(userDoc.data().ustepToken);
+                }
+            } catch (err) {
+                console.error('Error loading USTeP token from Firestore:', err);
+            } finally {
+                setInitialLoad(false);
+            }
+        };
+
+        loadToken();
+    }, [userId]);
 
     const login = async (username, password) => {
         setLoading(true);
@@ -27,8 +53,20 @@ export const useUSTeP = () => {
             }
 
             setToken(data.token);
-            localStorage.setItem('ustep_token', data.token);
-            setIsLoginModalOpen(false); // Close modal on success
+            setIsLoginModalOpen(false);
+
+            // Save token to Firestore
+            if (userId) {
+                try {
+                    await updateDoc(doc(db, 'users', userId), {
+                        ustepToken: data.token
+                    });
+                    console.log('✅ USTeP token saved to Firestore');
+                } catch (err) {
+                    console.error('Error saving USTeP token to Firestore:', err);
+                }
+            }
+
             return true;
         } catch (err) {
             setError(err.message);
@@ -38,13 +76,22 @@ export const useUSTeP = () => {
         }
     };
 
-    const logout = useCallback(() => {
+    const logout = useCallback(async () => {
         setToken(null);
-        localStorage.removeItem('ustep_token');
-    }, []);
+
+        if (userId) {
+            try {
+                await updateDoc(doc(db, 'users', userId), {
+                    ustepToken: null
+                });
+            } catch (err) {
+                console.error('Error clearing USTeP token:', err);
+            }
+        }
+    }, [userId]);
 
     const fetchUSTePAssignments = useCallback(async () => {
-        const currentToken = token || localStorage.getItem('ustep_token');
+        const currentToken = token;
 
         if (!currentToken) {
             console.warn('⚠️ No USTeP token found');
@@ -63,7 +110,7 @@ export const useUSTeP = () => {
             if (!response.ok) {
                 if (response.status === 401) {
                     // Token expired or invalid
-                    logout();
+                    await logout();
                     setError('Session expired. Please login again.');
                 }
                 throw new Error('Failed to fetch USTeP assignments');
@@ -81,14 +128,12 @@ export const useUSTeP = () => {
                     status = 'overdue';
                 }
 
-                // If we get submission status later, valid updates here
-
                 return {
                     title: a.name,
                     platform: 'USTeP',
                     courseName: a.course_name || a.course_code || 'USTeP Course',
                     dueDate: dueDate,
-                    status: status, // default for now
+                    status: status,
                     originalLink: a.cmid ? `https://ustep.ustp.edu.ph/mod/assign/view.php?id=${a.cmid}` : null,
                     description: a.intro ? a.intro.replace(/<[^>]*>?/gm, '').substring(0, 200) : '',
                     source: 'ustep',
@@ -109,7 +154,7 @@ export const useUSTeP = () => {
         login,
         logout,
         fetchUSTePAssignments,
-        loading,
+        loading: loading || initialLoad,
         error,
         token,
         isLoginModalOpen,

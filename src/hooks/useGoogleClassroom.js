@@ -1,10 +1,12 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../services/firebaseConfig';
 
 const DISCOVERY_DOCS = ['https://classroom.googleapis.com/$discovery/rest?version=v1'];
 const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.me.readonly https://www.googleapis.com/auth/classroom.student-submissions.me.readonly';
 
-export const useGoogleClassroom = () => {
+export const useGoogleClassroom = (userId) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [gapiReady, setGapiReady] = useState(false);
@@ -52,6 +54,51 @@ export const useGoogleClassroom = () => {
         initClient();
     }, []);
 
+    // Try to restore token from Firestore when gapi is ready
+    useEffect(() => {
+        if (!gapiReady || !userId) return;
+
+        const restoreToken = async () => {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', userId));
+                if (userDoc.exists() && userDoc.data().googleAccessToken) {
+                    const storedToken = userDoc.data().googleAccessToken;
+                    console.log('🔄 Restoring Google token from Firestore...');
+                    window.gapi.client.setToken({ access_token: storedToken });
+                }
+            } catch (err) {
+                console.error('Error restoring Google token from Firestore:', err);
+            }
+        };
+
+        restoreToken();
+    }, [gapiReady, userId]);
+
+    // Save token to Firestore
+    const saveTokenToFirestore = useCallback(async (accessToken) => {
+        if (!userId) return;
+        try {
+            await updateDoc(doc(db, 'users', userId), {
+                googleAccessToken: accessToken
+            });
+            console.log('✅ Google access token saved to Firestore');
+        } catch (err) {
+            console.error('Error saving Google token to Firestore:', err);
+        }
+    }, [userId]);
+
+    // Clear token from Firestore
+    const clearTokenFromFirestore = useCallback(async () => {
+        if (!userId) return;
+        try {
+            await updateDoc(doc(db, 'users', userId), {
+                googleAccessToken: null
+            });
+        } catch (err) {
+            console.error('Error clearing Google token from Firestore:', err);
+        }
+    }, [userId]);
+
     // Modern OAuth login hook
     const login = useGoogleLogin({
         scope: SCOPES,
@@ -61,8 +108,8 @@ export const useGoogleClassroom = () => {
                 access_token: tokenResponse.access_token
             });
 
-            // Save this token too as a fallback/update
-            localStorage.setItem('google_access_token', tokenResponse.access_token);
+            // Save token to Firestore
+            await saveTokenToFirestore(tokenResponse.access_token);
 
             // Proceed with fetch after token is set
             const assignments = await fetchAssignments();
@@ -107,9 +154,8 @@ export const useGoogleClassroom = () => {
 
             // Handle 400/401 errors by clearing the bad token
             if (err.status === 401 || err.status === 400 || err.result?.error?.code === 401 || err.result?.error?.code === 400) {
-                console.log('🔄 Token likely invalid (400/401). Clearing storage to force re-login next time.');
-                localStorage.removeItem('google_access_token');
-                // We don't automatically trigger login here to avoid loops, but next click will trigger it.
+                console.log('🔄 Token likely invalid (400/401). Clearing Firestore token to force re-login next time.');
+                await clearTokenFromFirestore();
             } else {
                 setError(err.message);
             }
@@ -230,20 +276,10 @@ export const useGoogleClassroom = () => {
         let tokenObject = window.gapi.client.getToken();
         let token = tokenObject?.access_token;
 
-        // NEW: Check local storage if gapi token is missing
-        if (!token) {
-            const storedToken = localStorage.getItem('google_access_token');
-            if (storedToken) {
-                console.log('🔄 Restoring Google token from storage...');
-                window.gapi.client.setToken({ access_token: storedToken });
-                token = storedToken;
-            }
-        }
-
         console.log('🔍 Current GAPI Token:', token ? 'Present' : 'Missing', tokenObject);
 
         if (!token) {
-            console.log('🔑 No GAPI token found, will prompt login...'); // Only logs, doesn't prompt yet
+            console.log('🔑 No GAPI token found, will prompt login...');
         }
 
         if (!token) {

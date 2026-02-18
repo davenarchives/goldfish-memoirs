@@ -1,19 +1,69 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../services/firebaseConfig';
 
-export const useCanvas = () => {
+export const useCanvas = (userId) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('canvas_token'));
+    const [token, setToken] = useState(null);
     const [isCanvasModalOpen, setIsCanvasModalOpen] = useState(false);
+    const [initialLoad, setInitialLoad] = useState(true);
 
-    const saveToken = useCallback((newToken) => {
+    // Load token from Firestore on mount
+    useEffect(() => {
+        if (!userId) {
+            setInitialLoad(false);
+            return;
+        }
+
+        const loadToken = async () => {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', userId));
+                if (userDoc.exists() && userDoc.data().canvasToken) {
+                    setToken(userDoc.data().canvasToken);
+                }
+            } catch (err) {
+                console.error('Error loading Canvas token from Firestore:', err);
+            } finally {
+                setInitialLoad(false);
+            }
+        };
+
+        loadToken();
+    }, [userId]);
+
+    const saveToken = useCallback(async (newToken) => {
         setToken(newToken);
-        localStorage.setItem('canvas_token', newToken);
         setIsCanvasModalOpen(false);
-    }, []);
+
+        if (userId) {
+            try {
+                await updateDoc(doc(db, 'users', userId), {
+                    canvasToken: newToken
+                });
+                console.log('✅ Canvas token saved to Firestore');
+            } catch (err) {
+                console.error('Error saving Canvas token to Firestore:', err);
+            }
+        }
+    }, [userId]);
+
+    const clearToken = useCallback(async () => {
+        setToken(null);
+
+        if (userId) {
+            try {
+                await updateDoc(doc(db, 'users', userId), {
+                    canvasToken: null
+                });
+            } catch (err) {
+                console.error('Error clearing Canvas token:', err);
+            }
+        }
+    }, [userId]);
 
     const fetchCanvasAssignments = useCallback(async () => {
-        const currentToken = token || localStorage.getItem('canvas_token');
+        const currentToken = token;
 
         if (!currentToken) {
             console.warn('⚠️ No Canvas token found');
@@ -36,10 +86,9 @@ export const useCanvas = () => {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Token likely invalid
-                    setToken(null);
-                    localStorage.removeItem('canvas_token');
-                    setError('Canvas token expired or invalid. Please update it.');
+                    // Token likely invalid — clear it and re-open modal for new token
+                    await clearToken();
+                    setError('Canvas token expired or invalid. Please enter a new token.');
                     setIsCanvasModalOpen(true);
                 }
                 throw new Error('Failed to fetch Canvas assignments');
@@ -66,11 +115,11 @@ export const useCanvas = () => {
         } finally {
             setLoading(false);
         }
-    }, [token]);
+    }, [token, clearToken]);
 
     return {
         fetchCanvasAssignments,
-        loading,
+        loading: loading || initialLoad,
         error,
         token,
         isCanvasModalOpen,

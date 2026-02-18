@@ -1,5 +1,6 @@
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '../services/firebaseConfig';
+import { auth, db } from '../services/firebaseConfig';
+import { doc, updateDoc } from 'firebase/firestore';
 import { useState } from 'react';
 
 const LoginPage = ({ onDemoLogin }) => {
@@ -20,22 +21,23 @@ const LoginPage = ({ onDemoLogin }) => {
             const credential = GoogleAuthProvider.credentialFromResult(result);
             const token = credential.accessToken;
 
-            // Save token to localStorage for use in API calls
-            if (token) {
-                localStorage.setItem('google_access_token', token);
+            // Save token to Firestore for use in API calls
+            if (token && result.user) {
+                try {
+                    await updateDoc(doc(db, 'users', result.user.uid), {
+                        googleAccessToken: token
+                    });
+                    console.log('✅ Google access token saved to Firestore');
+                } catch (err) {
+                    console.error('Error saving token to Firestore:', err);
+                }
             }
 
             console.log("Signed in and got token!");
 
         } catch (error) {
             console.error('Login error:', error);
-            // Handle Errors here.
-            const errorCode = error.code;
             const errorMessage = error.message;
-            // The email of the user's account used.
-            const email = error.customData.email;
-            // The AuthCredential type that was used.
-            const credential = GoogleAuthProvider.credentialFromError(error);
             alert(`Login failed: ${errorMessage}`);
         }
     };
