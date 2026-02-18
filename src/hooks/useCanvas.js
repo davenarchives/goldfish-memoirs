@@ -11,6 +11,9 @@ export const useCanvas = (userId) => {
 
     // Load token from Firestore on mount
     useEffect(() => {
+        setToken(null); // Reset token immediately when user changes
+        setInitialLoad(true);
+
         if (!userId) {
             setInitialLoad(false);
             return;
