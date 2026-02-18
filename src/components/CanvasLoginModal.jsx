@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ExternalLink, Info } from 'lucide-react';
+import CanvasLogo from '../assets/logo-Canvas.png';
 
 const CanvasLoginModal = ({ isOpen, onClose, onSaveToken, loading, error }) => {
     const [token, setToken] = useState('');
@@ -15,7 +16,7 @@ const CanvasLoginModal = ({ isOpen, onClose, onSaveToken, loading, error }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-ocean-navy-800 rounded-xl p-8 max-w-md w-full shadow-2xl transform transition-all border-t-4 border-red-500">
                 <div className="flex justify-center mb-6">
-                    <img src="/src/assets/Canvas_Logo.webp" alt="Canvas" className="h-12 object-contain" />
+                    <img src={CanvasLogo} alt="Canvas" className="h-12 object-contain" />
                 </div>
 
                 <div className="flex flex-col items-center mb-6">

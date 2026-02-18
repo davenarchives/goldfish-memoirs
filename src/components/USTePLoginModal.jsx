@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import USTEPLogo from '../assets/USTEP LOGO FINAL 2.png';
 
 const USTePLoginModal = ({ isOpen, onClose, onLogin, loading, error }) => {
     const [username, setUsername] = useState('');
@@ -19,11 +20,7 @@ const USTePLoginModal = ({ isOpen, onClose, onLogin, loading, error }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl p-8 max-w-md w-full shadow-2xl transform transition-all border-t-4 border-[#FBB03B]">
                 <div className="flex justify-center mb-6">
-                    <div className="text-2xl font-black tracking-tight flex items-center gap-1">
-                        <span className="text-[#1D264F]">UST</span>
-                        <span className="text-[#FBB03B] bg-[#1D264F] px-2 rounded-md">P</span>
-                        <span className="text-xs text-[#1D264F] self-end mb-1 font-bold ml-1">E-LEARNING</span>
-                    </div>
+                    <img src={USTEPLogo} alt="USTeP E-Learning" className="h-16 object-contain" />
                 </div>
 
                 <div className="flex flex-col items-center mb-6">
