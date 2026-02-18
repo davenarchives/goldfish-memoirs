@@ -9,32 +9,9 @@ const LoginPage = ({ onDemoLogin }) => {
     const handleGoogleLogin = async () => {
         const provider = new GoogleAuthProvider();
 
-        // Add scopes for Google Classroom
-        provider.addScope('https://www.googleapis.com/auth/classroom.courses.readonly');
-        provider.addScope('https://www.googleapis.com/auth/classroom.coursework.me.readonly');
-        provider.addScope('https://www.googleapis.com/auth/classroom.student-submissions.me.readonly');
-
         try {
             const result = await signInWithPopup(auth, provider);
-
-            // This gives you a Google Access Token. You can use it to access the Google API.
-            const credential = GoogleAuthProvider.credentialFromResult(result);
-            const token = credential.accessToken;
-
-            // Save token to Firestore for use in API calls
-            if (token && result.user) {
-                try {
-                    await setDoc(doc(db, 'users', result.user.uid), {
-                        googleAccessToken: token
-                    }, { merge: true });
-                    console.log('✅ Google access token saved to Firestore');
-                } catch (err) {
-                    console.error('Error saving token to Firestore:', err);
-                }
-            }
-
-            console.log("Signed in and got token!");
-
+            console.log("Signed in!", result.user.uid);
         } catch (error) {
             console.error('Login error:', error);
             const errorMessage = error.message;
