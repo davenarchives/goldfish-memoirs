@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ExternalLink, Info } from 'lucide-react';
-import CanvasLogo from '../assets/logo-Canvas.png';
+import CanvasLogo from '../assets/canvas-logo-web.png';
 
 const CanvasLoginModal = ({ isOpen, onClose, onSaveToken, loading, error }) => {
     const [token, setToken] = useState('');

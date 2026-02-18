@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import USTEPLogo from '../assets/USTEP LOGO FINAL 2.png';
+import USTEPLogo from '../assets/ustep-logo-web.png';
 
 const USTePLoginModal = ({ isOpen, onClose, onLogin, loading, error }) => {
     const [username, setUsername] = useState('');
