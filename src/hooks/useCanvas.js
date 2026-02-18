@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
 
 export const useCanvas = (userId) => {
@@ -38,9 +38,9 @@ export const useCanvas = (userId) => {
 
         if (userId) {
             try {
-                await updateDoc(doc(db, 'users', userId), {
+                await setDoc(doc(db, 'users', userId), {
                     canvasToken: newToken
-                });
+                }, { merge: true });
                 console.log('✅ Canvas token saved to Firestore');
             } catch (err) {
                 console.error('Error saving Canvas token to Firestore:', err);
@@ -53,9 +53,9 @@ export const useCanvas = (userId) => {
 
         if (userId) {
             try {
-                await updateDoc(doc(db, 'users', userId), {
+                await setDoc(doc(db, 'users', userId), {
                     canvasToken: null
-                });
+                }, { merge: true });
             } catch (err) {
                 console.error('Error clearing Canvas token:', err);
             }
@@ -75,7 +75,7 @@ export const useCanvas = (userId) => {
         setError(null);
 
         try {
-            const proxyUrl = import.meta.env.VITE_PROXY_URL || '';
+            const proxyUrl = import.meta.env.PROD ? '' : (import.meta.env.VITE_PROXY_URL || '');
 
             // Pass token in headers to proxy
             const response = await fetch(`${proxyUrl}/api/canvas/assignments`, {

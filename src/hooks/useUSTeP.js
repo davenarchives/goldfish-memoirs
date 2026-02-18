@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
 
 export const useUSTeP = (userId) => {
@@ -36,7 +36,7 @@ export const useUSTeP = (userId) => {
         setLoading(true);
         setError(null);
         try {
-            const proxyUrl = import.meta.env.VITE_PROXY_URL || '';
+            const proxyUrl = import.meta.env.PROD ? '' : (import.meta.env.VITE_PROXY_URL || '');
 
             const response = await fetch(`${proxyUrl}/api/ustep/login`, {
                 method: 'POST',
@@ -58,9 +58,9 @@ export const useUSTeP = (userId) => {
             // Save token to Firestore
             if (userId) {
                 try {
-                    await updateDoc(doc(db, 'users', userId), {
+                    await setDoc(doc(db, 'users', userId), {
                         ustepToken: data.token
-                    });
+                    }, { merge: true });
                     console.log('✅ USTeP token saved to Firestore');
                 } catch (err) {
                     console.error('Error saving USTeP token to Firestore:', err);
@@ -81,9 +81,9 @@ export const useUSTeP = (userId) => {
 
         if (userId) {
             try {
-                await updateDoc(doc(db, 'users', userId), {
+                await setDoc(doc(db, 'users', userId), {
                     ustepToken: null
-                });
+                }, { merge: true });
             } catch (err) {
                 console.error('Error clearing USTeP token:', err);
             }
@@ -100,7 +100,7 @@ export const useUSTeP = (userId) => {
 
         setLoading(true);
         try {
-            const proxyUrl = import.meta.env.VITE_PROXY_URL || '';
+            const proxyUrl = import.meta.env.PROD ? '' : (import.meta.env.VITE_PROXY_URL || '');
             const response = await fetch(`${proxyUrl}/api/ustep/assignments`, {
                 headers: {
                     'Authorization': `Bearer ${currentToken}`

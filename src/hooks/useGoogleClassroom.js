@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
 
 const DISCOVERY_DOCS = ['https://classroom.googleapis.com/$discovery/rest?version=v1'];
@@ -78,9 +78,9 @@ export const useGoogleClassroom = (userId) => {
     const saveTokenToFirestore = useCallback(async (accessToken) => {
         if (!userId) return;
         try {
-            await updateDoc(doc(db, 'users', userId), {
+            await setDoc(doc(db, 'users', userId), {
                 googleAccessToken: accessToken
-            });
+            }, { merge: true });
             console.log('✅ Google access token saved to Firestore');
         } catch (err) {
             console.error('Error saving Google token to Firestore:', err);
@@ -91,9 +91,9 @@ export const useGoogleClassroom = (userId) => {
     const clearTokenFromFirestore = useCallback(async () => {
         if (!userId) return;
         try {
-            await updateDoc(doc(db, 'users', userId), {
+            await setDoc(doc(db, 'users', userId), {
                 googleAccessToken: null
-            });
+            }, { merge: true });
         } catch (err) {
             console.error('Error clearing Google token from Firestore:', err);
         }

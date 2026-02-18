@@ -1,6 +1,6 @@
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth, db } from '../services/firebaseConfig';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc } from 'firebase/firestore';
 import { useState } from 'react';
 
 const LoginPage = ({ onDemoLogin }) => {
@@ -24,9 +24,9 @@ const LoginPage = ({ onDemoLogin }) => {
             // Save token to Firestore for use in API calls
             if (token && result.user) {
                 try {
-                    await updateDoc(doc(db, 'users', result.user.uid), {
+                    await setDoc(doc(db, 'users', result.user.uid), {
                         googleAccessToken: token
-                    });
+                    }, { merge: true });
                     console.log('✅ Google access token saved to Firestore');
                 } catch (err) {
                     console.error('Error saving token to Firestore:', err);
