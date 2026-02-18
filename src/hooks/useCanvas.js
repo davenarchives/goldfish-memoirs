@@ -3,17 +3,45 @@ import { useState, useCallback } from 'react';
 export const useCanvas = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [token, setToken] = useState(localStorage.getItem('canvas_token'));
+    const [isCanvasModalOpen, setIsCanvasModalOpen] = useState(false);
+
+    const saveToken = useCallback((newToken) => {
+        setToken(newToken);
+        localStorage.setItem('canvas_token', newToken);
+        setIsCanvasModalOpen(false);
+    }, []);
 
     const fetchCanvasAssignments = useCallback(async () => {
+        const currentToken = token || localStorage.getItem('canvas_token');
+
+        if (!currentToken) {
+            console.warn('⚠️ No Canvas token found');
+            setIsCanvasModalOpen(true);
+            return null; // Return null instead of empty array to indicate no sync happened
+        }
+
         setLoading(true);
         setError(null);
 
         try {
-            const proxyUrl = import.meta.env.VITE_PROXY_URL || 'http://localhost:3001';
-            // Fetch ALL assignments (including undated ones like Roll Call), not just upcoming
-            const response = await fetch(`${proxyUrl}/api/canvas/assignments`);
+            const proxyUrl = import.meta.env.VITE_PROXY_URL ?? '';
+
+            // Pass token in headers to proxy
+            const response = await fetch(`${proxyUrl}/api/canvas/assignments`, {
+                headers: {
+                    'Authorization': `Bearer ${currentToken}`
+                }
+            });
 
             if (!response.ok) {
+                if (response.status === 401) {
+                    // Token likely invalid
+                    setToken(null);
+                    localStorage.removeItem('canvas_token');
+                    setError('Canvas token expired or invalid. Please update it.');
+                    setIsCanvasModalOpen(true);
+                }
                 throw new Error('Failed to fetch Canvas assignments');
             }
 
@@ -38,7 +66,15 @@ export const useCanvas = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [token]);
 
-    return { fetchCanvasAssignments, loading, error };
+    return {
+        fetchCanvasAssignments,
+        loading,
+        error,
+        token,
+        isCanvasModalOpen,
+        setIsCanvasModalOpen,
+        saveToken
+    };
 };
