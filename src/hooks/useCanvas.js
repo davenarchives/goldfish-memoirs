@@ -33,13 +33,16 @@ export const useCanvas = (userId) => {
     }, [userId]);
 
     const saveToken = useCallback(async (newToken) => {
-        setToken(newToken);
+        const trimmedToken = newToken?.trim();
+        if (!trimmedToken) return;
+
+        setToken(trimmedToken);
         setIsCanvasModalOpen(false);
 
         if (userId) {
             try {
                 await setDoc(doc(db, 'users', userId), {
-                    canvasToken: newToken
+                    canvasToken: trimmedToken
                 }, { merge: true });
                 console.log('✅ Canvas token saved to Firestore');
             } catch (err) {
@@ -63,7 +66,7 @@ export const useCanvas = (userId) => {
     }, [userId]);
 
     const fetchCanvasAssignments = useCallback(async () => {
-        const currentToken = token;
+        const currentToken = token?.trim();
 
         if (!currentToken) {
             console.warn('⚠️ No Canvas token found');

@@ -59,7 +59,7 @@ export const useUSTeP = (userId) => {
             if (userId) {
                 try {
                     await setDoc(doc(db, 'users', userId), {
-                        ustepToken: data.token
+                        ustepToken: data.token?.trim() // Trim token just in case
                     }, { merge: true });
                     console.log('✅ USTeP token saved to Firestore');
                 } catch (err) {
@@ -91,10 +91,9 @@ export const useUSTeP = (userId) => {
     }, [userId]);
 
     const fetchUSTePAssignments = useCallback(async () => {
-        const currentToken = token;
-
+        const currentToken = token?.trim();
+        // No token, maybe open login modal or just return
         if (!currentToken) {
-            console.warn('⚠️ No USTeP token found');
             return [];
         }
 
