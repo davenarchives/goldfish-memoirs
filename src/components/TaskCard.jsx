@@ -32,7 +32,7 @@ const TaskCard = ({ task, onDelete }) => {
             Canvas: 'badge-canvas',
             'Google Classroom': 'badge-google',
             Google: 'badge-google',
-            USTEP: 'badge-ustep',
+            USTeP: 'badge-ustep',
             Manual: 'badge-manual',
         };
         return badges[platform] || 'badge-manual';

@@ -5,12 +5,11 @@ import { FolderOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 import NoteEditor from '../components/NoteEditor';
 
-const SubjectFolders = () => {
+const SubjectFolders = ({ user }) => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [expandedFolder, setExpandedFolder] = useState(null);
     const [selectedCourse, setSelectedCourse] = useState(null);
-    const user = auth.currentUser;
 
     // Real-time listener for all tasks
     useEffect(() => {
@@ -20,7 +19,7 @@ const SubjectFolders = () => {
         }
 
         const tasksRef = collection(db, 'users', user.uid, 'tasks');
-        const q = query(tasksRef, where('status', '==', 'pending'));
+        const q = query(tasksRef, where('status', 'in', ['pending', 'overdue']));
 
         const unsubscribe = onSnapshot(
             q,

@@ -4,11 +4,12 @@ import { db, auth } from '../services/firebaseConfig';
 import { Archive as ArchiveIcon, Calendar, Trash2 } from 'lucide-react';
 import TaskCard from '../components/TaskCard';
 
-const TheArchive = () => {
+const TheArchive = ({ user }) => {
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [clearing, setClearing] = useState(false);
+    const [clearProgress, setClearProgress] = useState(0);
     const [timeFilter, setTimeFilter] = useState('all');
-    const user = auth.currentUser;
 
     // Real-time listener for completed tasks
     useEffect(() => {
@@ -84,20 +85,34 @@ const TheArchive = () => {
         if (filteredTasks.length === 0) return;
 
         if (window.confirm(`⚠️ WARNING: Are you sure you want to delete ALL ${filteredTasks.length} tasks in this view?\n\nThis action cannot be undone.`)) {
-            setLoading(true);
+            setClearing(true);
+            setClearProgress(0);
+
             try {
-                const batch = writeBatch(db);
-                filteredTasks.forEach((task) => {
-                    const docRef = doc(db, 'users', user.uid, 'tasks', task.id);
-                    batch.delete(docRef);
-                });
-                await batch.commit();
-                // Alert removed to prevent blocking UI updates
-                console.log('Batch delete committed');
+                const total = filteredTasks.length;
+                const chunkSize = 500;
+
+                for (let i = 0; i < total; i += chunkSize) {
+                    const chunk = filteredTasks.slice(i, i + chunkSize);
+                    const batch = writeBatch(db);
+
+                    chunk.forEach((task) => {
+                        const docRef = doc(db, 'users', user.uid, 'tasks', task.id);
+                        batch.delete(docRef);
+                    });
+
+                    await batch.commit();
+                    setClearProgress(Math.min(Math.round(((i + chunk.length) / total) * 100), 100));
+                    console.log(`Deleted chunk ${i / chunkSize + 1} (${chunk.length} items)`);
+                }
+
+                console.log('Archive cleared successfully');
             } catch (error) {
-                console.error('Error deleting all tasks:', error);
-                alert('Failed to delete tasks');
-                setLoading(false);
+                console.error('Error clearing archive:', error);
+                alert('Failed to clear archive completely. Please try again.');
+            } finally {
+                setClearing(false);
+                setClearProgress(0);
             }
         }
     };
@@ -133,10 +148,15 @@ const TheArchive = () => {
                     {filteredTasks.length > 0 && (
                         <button
                             onClick={handleDeleteAll}
-                            className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors font-medium"
+                            disabled={clearing}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium
+                                ${clearing
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50'
+                                }`}
                         >
-                            <Trash2 className="w-4 h-4" />
-                            Clear Archive
+                            <Trash2 className={`w-4 h-4 ${clearing ? 'animate-pulse' : ''}`} />
+                            {clearing ? `Clearing... ${clearProgress}%` : 'Clear Archive'}
                         </button>
                     )}
                 </div>
