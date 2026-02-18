@@ -103,30 +103,20 @@ const TheCurrent = ({ user, onSyncCanvas, onSyncGoogle, onSyncUSTeP, isSyncing, 
                         {/* Sync Buttons */}
                         <div className="flex items-center gap-2">
 
-                            <div className="flex items-center gap-1">
-                                {/* Canvas Sync */}
-                                <button
-                                    onClick={() => !canvasToken ? setIsCanvasModalOpen(true) : onSyncCanvas()}
-                                    disabled={isSyncing.canvas}
-                                    className="group relative p-2 rounded-xl glass-card hover:bg-white/90 dark:hover:bg-ocean-navy-700/90 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
-                                    title={!canvasToken ? "Connect Canvas" : "Sync Canvas"}
-                                >
-                                    <img src={CanvasLogo} alt="Canvas" className={`w-8 h-8 object-contain ${isSyncing.canvas ? 'animate-pulse opacity-50' : ''}`} />
-                                    {isSyncing.canvas && (
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <RefreshCw className="w-4 h-4 animate-spin text-red-600" />
-                                        </div>
-                                    )}
-                                </button>
-                                {/* Manage Canvas Token Button */}
-                                <button
-                                    onClick={() => setIsCanvasModalOpen(true)}
-                                    className="p-1.5 rounded-lg text-gray-400 hover:text-goldfish-500 hover:bg-white/50 dark:hover:bg-ocean-navy-700/50 transition-all"
-                                    title="Manage Canvas Token"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-settings-2"><path d="M20 7h-9" /><path d="M14 17H5" /><circle cx="17" cy="17" r="3" /><circle cx="7" cy="7" r="3" /></svg>
-                                </button>
-                            </div>
+                            {/* Canvas Sync */}
+                            <button
+                                onClick={() => !canvasToken ? setIsCanvasModalOpen(true) : onSyncCanvas()}
+                                disabled={isSyncing.canvas}
+                                className="group relative p-2 rounded-xl glass-card hover:bg-white/90 dark:hover:bg-ocean-navy-700/90 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed"
+                                title={!canvasToken ? "Connect Canvas" : "Sync Canvas"}
+                            >
+                                <img src={CanvasLogo} alt="Canvas" className={`w-8 h-8 object-contain ${isSyncing.canvas ? 'animate-pulse opacity-50' : ''}`} />
+                                {isSyncing.canvas && (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <RefreshCw className="w-4 h-4 animate-spin text-red-600" />
+                                    </div>
+                                )}
+                            </button>
 
                             {/* Google Sync */}
                             <button
@@ -163,7 +153,6 @@ const TheCurrent = ({ user, onSyncCanvas, onSyncGoogle, onSyncUSTeP, isSyncing, 
 
                 {/* Filter */}
                 <div className="mt-6 flex items-center gap-3 border-t border-gray-100 dark:border-gray-800 pt-4">
-                    <Filter className="w-5 h-5 text-gray-500" />
                     <div className="flex flex-wrap gap-2">
                         {platforms.map((platform) => (
                             <button

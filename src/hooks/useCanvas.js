@@ -96,6 +96,7 @@ export const useCanvas = (userId) => {
                     await clearToken();
                     setError('Canvas token expired or invalid. Please enter a new token.');
                     setIsCanvasModalOpen(true);
+                    throw new Error('CANVAS_AUTH_ERROR');
                 }
                 throw new Error('Failed to fetch Canvas assignments');
             }

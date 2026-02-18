@@ -11,7 +11,7 @@ import TheCurrent from './pages/TheCurrent';
 import TheArchive from './pages/TheArchive';
 import SubjectFolders from './pages/SubjectFolders';
 import LoginPage from './components/LoginPage';
-import { useUSTeP } from './hooks/useUSTeP';
+import { useUSTeP } from './hooks/useUStep';
 import USTePLoginModal from './components/USTePLoginModal';
 import CanvasLoginModal from './components/CanvasLoginModal';
 
@@ -99,6 +99,11 @@ function App() {
       await syncTasksToFirestore(newTasks, 'Canvas');
 
     } catch (error) {
+      if (error.message === 'CANVAS_AUTH_ERROR') {
+        // Silent fail - modal is already opening via useCanvas hook
+        console.log('🔄 Canvas auth error, opening modal...');
+        return;
+      }
       console.error('❌ Canvas sync error:', error);
       alert(`❌ Canvas sync failed: ${error.message}`);
     } finally {
