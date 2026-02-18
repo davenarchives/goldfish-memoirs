@@ -298,14 +298,17 @@ app.get('/api/ustep/assignments', async (req, res) => {
         // No, documentation says "Returns the courses and assignments for the users capability". 
         // Let's pass courseids.
 
-        const assignmentsData = await ustepApiRequest('/webservice/rest/server.php', {
+        // Moodle expects array params like courseids[0]=1, courseids[1]=2
+        const params = {
             wstoken: token,
-            wsfunction: 'mod_assign_get_assignments',
-            // Passing courseids is tricky with simple params object in axios if it expects repeated keys or array notation
-            // Let's rely on Moodle returning all if we don't filter, or filter client side if needed.
-            // Actually 'mod_assign_get_assignments' without courseids might return nothing or everything.
-            // Let's try getting all assignments for the user.
+            wsfunction: 'mod_assign_get_assignments'
+        };
+
+        courseIds.forEach((id, index) => {
+            params[`courseids[${index}]`] = id;
         });
+
+        const assignmentsData = await ustepApiRequest('/webservice/rest/server.php', params);
 
         // Use mod_assign_get_assignments which returns structured data
         // We might need to handle courseids param if the default behavior isn't "all my courses"

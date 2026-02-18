@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "proxy": "cd proxy-server && npm run start",
-    "dev:all": "concurrently \"npm run dev\" \"npm run proxy\"",
+    "dev:all": "npx concurrently \"npm run dev\" \"npm run proxy\"",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
